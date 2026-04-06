@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Umuhlewena — Beauty Journey Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root{--rose:#C1687A;--rose-d:#A3566A;--rose-l:#F7EDEF;--cream:#FAF8F5;--ink:#1C1410;--ink-m:#5C4A44;--ink-l:#9C8A84;--border:#EDE8E3;--teal:#4A8C7A;--teal-l:#E2F0EC;--purple-l:#EDE8FE;--purple:#6B4DBE;--amber-l:#FEF3CD;--amber:#92670A;--sidebar:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);display:flex;min-height:100vh;font-size:14px;}
+.sidebar{width:var(--sidebar);background:var(--ink);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;}
+.sb-brand{padding:28px 22px 22px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-mono{width:38px;height:38px;border-radius:50%;background:var(--rose);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:17px;color:#fff;font-weight:600;margin-bottom:11px;}
+.sb-name{font-family:'Cormorant Garamond',serif;font-size:19px;color:#fff;font-weight:500;}
+.sb-tag{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;letter-spacing:.8px;}
+.sb-nav{flex:1;padding:14px 0;}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 22px;font-size:12.5px;color:rgba(255,255,255,.45);cursor:pointer;transition:all .18s;border-left:2px solid transparent;user-select:none;}
+.ni:hover{color:#fff;background:rgba(255,255,255,.04);}
+.ni.active{color:#fff;border-left-color:var(--rose);background:rgba(193,104,122,.13);}
+.ni.ni-disabled{display:flex;align-items:center;gap:10px;padding:10px 22px;font-size:12.5px;color:rgba(255,255,255,.18);border-left:2px solid transparent;user-select:none;cursor:not-allowed;}
+.ni.ni-disabled::after{content:'Soon';font-size:9px;letter-spacing:.5px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.25);padding:2px 6px;border-radius:4px;margin-left:auto;}
+.panel-locked{position:relative;}
+.panel-locked-overlay{position:absolute;inset:0;background:rgba(250,248,245,.82);backdrop-filter:blur(6px);z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.lock-icon{font-size:32px;opacity:.3;}
+.lock-msg{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink-l);font-weight:400;}
+.lock-sub{font-size:13px;color:var(--ink-l);max-width:320px;text-align:center;line-height:1.6;}
+
+.main{margin-left:var(--sidebar);flex:1;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:15px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.tb-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;}
+.tb-sub{font-size:11.5px;color:var(--ink-l);margin-top:2px;}
+.tb-actions{display:flex;gap:10px;}
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;border:none;line-height:1;}
+.btn-p{background:var(--rose);color:#fff;}.btn-p:hover{background:var(--rose-d);}
+.btn-g{background:transparent;border:1px solid var(--border);color:var(--ink-m);}.btn-g:hover{border-color:var(--rose);color:var(--rose);}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.panel{padding:28px 32px;display:none;}.panel.active{display:block;}
+.quote-bar{background:var(--ink);border-radius:12px;padding:20px 26px;margin-bottom:24px;display:flex;align-items:center;gap:18px;}
+.qmark{font-family:'Cormorant Garamond',serif;font-size:56px;color:var(--rose);line-height:.8;margin-top:-6px;flex-shrink:0;}
+.qtext{font-family:'Cormorant Garamond',serif;font-size:17px;color:#fff;font-style:italic;line-height:1.55;}
+.qsub{font-size:10px;color:rgba(255,255,255,.35);margin-top:6px;letter-spacing:.6px;}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.mc{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
+.mc-lbl{font-size:10.5px;color:var(--ink-l);letter-spacing:.9px;text-transform:uppercase;margin-bottom:8px;}
+.mc-val{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:500;line-height:1;margin-bottom:4px;}
+.mc-note{font-size:11.5px;color:var(--teal);}.mc-note.w{color:var(--rose);}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:18px;}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.card-title{font-size:13px;font-weight:500;}
+.card-sub{font-size:11.5px;color:var(--ink-l);}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:9px 12px;font-size:10.5px;font-weight:500;color:var(--ink-l);letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--ink-m);font-size:13px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--cream);}
+.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.ps{background:var(--teal-l);color:var(--teal);}.pp{background:var(--amber-l);color:var(--amber);}.pf{background:var(--rose-l);color:var(--rose);}
+.ph{background:var(--purple-l);color:var(--purple);}.pn{background:#FFF0E8;color:#B85A1A;}.pa{background:var(--rose-l);color:var(--rose);}.pw{background:var(--teal-l);color:var(--teal);}
+.seg-tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+.stab{padding:7px 16px;border-radius:20px;font-size:13px;border:1px solid var(--border);cursor:pointer;transition:all .18s;background:#fff;color:var(--ink-m);}
+.stab.active{background:var(--rose);color:#fff;border-color:var(--rose);}
+.tp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.tpc{border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.tph{padding:13px 18px;display:flex;align-items:center;gap:12px;background:var(--cream);border-bottom:1px solid var(--border);}
+.tpnum{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;}
+.n1{background:var(--teal-l);color:var(--teal);}.n2{background:var(--purple-l);color:var(--purple);}.n3{background:var(--rose-l);color:var(--rose);}.n4{background:var(--amber-l);color:var(--amber);}
+.tpm{flex:1;}.tpname{font-size:12.5px;font-weight:500;}.tptm{font-size:11px;color:var(--ink-l);}
+.tog{width:36px;height:20px;background:var(--rose);border-radius:10px;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;}
+.tog::after{content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:all .2s;}
+.tog.off{background:var(--border);}.tog.off::after{right:auto;left:2px;}
+.tpb{padding:16px 18px;}
+textarea.tpl{width:100%;min-height:95px;resize:vertical;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--ink-m);font-family:'DM Sans',sans-serif;line-height:1.65;background:var(--cream);outline:none;transition:border .2s;}
+textarea.tpl:focus{border-color:var(--rose);background:#fff;}
+.tpfoot{display:flex;justify-content:flex-end;margin-top:10px;}
+.vars{font-size:11px;color:var(--ink-l);margin-bottom:6px;}
+.vars code{background:var(--border);padding:1px 5px;border-radius:3px;font-size:10.5px;margin-right:4px;color:var(--ink-m);}
+.log-filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.fc{padding:6px 14px;border:1px solid var(--border);border-radius:20px;font-size:12.5px;cursor:pointer;background:#fff;color:var(--ink-m);transition:all .15s;}
+.fc.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.int-sec{margin-bottom:26px;}
+.int-title{font-size:11px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-l);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.fl{margin-bottom:12px;}
+.fl label{font-size:12px;color:var(--ink-m);margin-bottom:5px;display:block;}
+.fl-note{font-size:11px;color:var(--ink-l);margin-top:4px;}
+input.fi,select.fi{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--ink);background:#fff;outline:none;transition:border .2s;}
+input.fi:focus,select.fi:focus{border-color:var(--rose);}
+.wh{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:12px;font-family:monospace;color:var(--ink-m);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.wh-url{flex:1;word-break:break-all;}
+.ptabs{display:flex;gap:6px;margin-bottom:14px;}
+.ptab{padding:6px 14px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;cursor:pointer;background:#fff;color:var(--ink-m);transition:all .15s;}
+.ptab.active{border-color:var(--rose);color:var(--rose);background:var(--rose-l);}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.preview-box{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--ink-m);line-height:1.7;min-height:80px;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-mono">U</div>
+    <div class="sb-name">Umuhlewena</div>
+    <div class="sb-tag">YOU ARE BEAUTIFUL</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="ni active" onclick="show('dash',this)"><span>◈</span> Dashboard</div>
+    <div class="ni" onclick="show('tp',this)"><span>✦</span> Touchpoints</div>
+    <div class="ni" onclick="show('log',this)"><span>≡</span> Message log</div>
+    <div class="ni ni-disabled" title="Coming soon"><span>⟡</span> Integration</div>
+    <div class="ni ni-disabled" title="Coming soon"><span>▷</span> Send test</div>
+  </nav>
+  <div class="sb-foot">Umuhlewena v1.0<br>Beauty Journey Platform</div>
+</aside>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div id="p-dash" class="panel active">
+  <div class="topbar">
+    <div><div class="tb-title">Dashboard</div><div class="tb-sub">The Beauty Journey · Client Relationship Engine</div></div>
+    <div class="tb-actions">
+      <button class="btn btn-g btn-sm" onclick="loadDash()">↺ Refresh</button>
+      <button class="btn btn-p btn-sm">+ Add client</button>
+    </div>
+  </div>
+  <div style="padding:28px 32px;">
+    <div class="quote-bar">
+      <div class="qmark">"</div>
+      <div>
+        <div class="qtext">Every woman who walks through your door is already beautiful.<br>Umuhlewena ensures she never forgets it.</div>
+        <div class="qsub">THE BEAUTY JOURNEY PHILOSOPHY · UMUHLEWENA</div>
+      </div>
+    </div>
+    <div class="metrics">
+      <div class="mc"><div class="mc-lbl">Sent this month</div><div class="mc-val" id="m1">—</div><div class="mc-note" id="m1n">Loading…</div></div>
+      <div class="mc"><div class="mc-lbl">Delivery rate</div><div class="mc-val" id="m2">—</div><div class="mc-note" id="m2n">Loading…</div></div>
+      <div class="mc"><div class="mc-lbl">Active clients</div><div class="mc-val" id="m3">—</div><div class="mc-note" id="m3n">Loading…</div></div>
+      <div class="mc"><div class="mc-lbl">Pending messages</div><div class="mc-val" id="m4">—</div><div class="mc-note w" id="m4n">Loading…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="card-title">Recent messages</div><div class="card-sub">Last 8 touchpoints sent</div></div>
+      <table><thead><tr><th>Client</th><th>Segment</th><th>Touchpoint</th><th>Sent</th><th>Status</th></tr></thead>
+      <tbody id="tb-recent"><tr><td colspan="5" style="text-align:center;color:var(--ink-l);padding:20px;">Loading…</td></tr></tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="card-title">Upcoming messages</div><div class="card-sub">Scheduled for the next 7 days</div></div>
+      <table><thead><tr><th>Client</th><th>Segment</th><th>Touchpoint</th><th>Scheduled</th><th></th></tr></thead>
+      <tbody id="tb-up"><tr><td colspan="5" style="text-align:center;color:var(--ink-l);padding:20px;">Loading…</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- TOUCHPOINTS -->
+<div id="p-tp" class="panel">
+  <div class="topbar">
+    <div><div class="tb-title">Touchpoints</div><div class="tb-sub">Edit message templates per beauty segment</div></div>
+    <div class="tb-actions"><button class="btn btn-p btn-sm" onclick="flash('All templates saved ✓')">Save all</button></div>
+  </div>
+  <div style="padding:28px 32px;">
+    <div class="seg-tabs">
+      <div class="stab active" onclick="setSeg('hair',this)">💇 Hair</div>
+      <div class="stab" onclick="setSeg('nails',this)">💅 Nails</div>
+      <div class="stab" onclick="setSeg('aesthetics',this)">✨ Aesthetics</div>
+      <div class="stab" onclick="setSeg('wellness',this)">🌿 Wellness</div>
+    </div>
+    <div class="vars" style="margin-bottom:16px;">
+      <strong style="color:var(--ink-m);">Variables:</strong>
+      <code>{{client_name}}</code><code>{{treatment}}</code><code>{{salon_name}}</code><code>{{therapist_name}}</code><code>{{next_date}}</code><code>{{booking_link}}</code>
+    </div>
+    <div class="tp-grid" id="tp-grid"></div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="p-log" class="panel">
+  <div class="topbar">
+    <div><div class="tb-title">Message log</div><div class="tb-sub">Full history of every touchpoint sent</div></div>
+    <div class="tb-actions"><button class="btn btn-g btn-sm">↓ Export CSV</button></div>
+  </div>
+  <div style="padding:28px 32px;">
+    <div class="log-filters">
+      <div class="fc active" onclick="filterLog('all',this)">All</div>
+      <div class="fc" onclick="filterLog('hair',this)">💇 Hair</div>
+      <div class="fc" onclick="filterLog('nails',this)">💅 Nails</div>
+      <div class="fc" onclick="filterLog('aesthetics',this)">✨ Aesthetics</div>
+      <div class="fc" onclick="filterLog('wellness',this)">🌿 Wellness</div>
+      <div class="fc" onclick="filterLog('sent',this)">Sent</div>
+      <div class="fc" onclick="filterLog('pending',this)">Pending</div>
+      <div class="fc" onclick="filterLog('failed',this)">Failed</div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table><thead><tr><th>Client</th><th>Segment</th><th>Touchpoint</th><th>Phone</th><th>Sent at</th><th>Status</th></tr></thead>
+      <tbody id="tb-log"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- INTEGRATION -->
+<div id="p-int" class="panel panel-locked">
+  <div class="panel-locked-overlay">
+    <div class="lock-icon">⟡</div>
+    <div class="lock-msg">Integration setup</div>
+    <div class="lock-sub">WhatsApp API and booking system connections are configured during onboarding. Available in the full platform.</div>
+  </div>
+  <div class="topbar" style="filter:blur(2px);pointer-events:none;">
+    <div><div class="tb-title">Integration</div><div class="tb-sub">Connect your booking system and WhatsApp API</div></div>
+  </div>
+  <div style="padding:28px 32px;max-width:680px;filter:blur(3px);pointer-events:none;opacity:.4;">
+    <div class="card">
+      <div class="int-sec">
+        <div class="int-title">Booking system webhook</div>
+        <div class="fl">
+          <label>Paste this URL into your booking system's webhook settings (Fresha, Timely, Booksy, Salon Iris, custom POS)</label>
+          <div class="wh">
+            <span class="wh-url">https://umuhlewena.app/webhook/bookings/your-key</span>
+            <button class="btn btn-g btn-sm" onclick="flash('Webhook URL copied ✓')">Copy</button>
+          </div>
+          <div class="fl-note">POST a JSON body with: <code style="font-size:11px;background:var(--border);padding:1px 5px;border-radius:3px;">client_name, phone, treatment, segment, salon_name, therapist_name</code></div>
+        </div>
+      </div>
+      <div class="int-sec">
+        <div class="int-title">WhatsApp API credentials</div>
+        <div class="ptabs">
+          <div class="ptab active">Meta Cloud API</div>
+          <div class="ptab" onclick="swapP(this)">Twilio</div>
+          <div class="ptab" onclick="swapP(this)">360Dialog</div>
+        </div>
+        <div class="two">
+          <div class="fl"><label>Phone Number ID</label><input type="text" class="fi" placeholder="e.g. 123456789012345"></div>
+          <div class="fl"><label>Access Token</label><input type="password" class="fi" placeholder="••••••••••••••••••••"></div>
+        </div>
+        <div class="fl">
+          <label>Salon / Business display name</label>
+          <input type="text" class="fi" placeholder="e.g. Glow Studio by Thembi">
+          <div class="fl-note">This appears as {{salon_name}} in all messages</div>
+        </div>
+        <button class="btn btn-p" onclick="flash('Credentials saved securely ✓')">Save credentials</button>
+      </div>
+      <div class="int-sec" style="margin-bottom:0;">
+        <div class="int-title">API key (generic webhook)</div>
+        <div class="fl">
+          <div class="wh">
+            <span class="wh-url" id="ak">umhl_live_••••••••••••••••••••••••••••••</span>
+            <button class="btn btn-g btn-sm" onclick="document.getElementById('ak').textContent='umhl_live_a8f3d92c1b4e7f6a5d0c3e8b2f1a9d4c'">Reveal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEND TEST -->
+<div id="p-test" class="panel panel-locked">
+  <div class="panel-locked-overlay">
+    <div class="lock-icon">▷</div>
+    <div class="lock-msg">Send test message</div>
+    <div class="lock-sub">Connect your WhatsApp API in the Integration settings to enable live message testing.</div>
+  </div>
+  <div class="topbar" style="filter:blur(2px);pointer-events:none;">
+    <div><div class="tb-title">Send test</div><div class="tb-sub">Verify your WhatsApp API is connected</div></div>
+  </div>
+  <div style="padding:28px 32px;max-width:480px;filter:blur(3px);pointer-events:none;opacity:.4;">
+    <div class="card">
+      <div class="fl"><label>Client phone (with country code)</label><input type="tel" class="fi" id="t-phone" placeholder="+27 82 123 4567"></div>
+      <div class="fl"><label>Client name</label><input type="text" class="fi" id="t-name" placeholder="e.g. Nomvula" oninput="updatePrev()"></div>
+      <div class="fl">
+        <label>Segment</label>
+        <select class="fi" id="t-seg" onchange="updatePrev()">
+          <option value="hair">💇 Hair</option>
+          <option value="nails">💅 Nails</option>
+          <option value="aesthetics">✨ Aesthetics</option>
+          <option value="wellness">🌿 Wellness</option>
+        </select>
+      </div>
+      <div class="fl">
+        <label>Touchpoint</label>
+        <select class="fi" id="t-tp" onchange="updatePrev()">
+          <option value="0">01 · The Warm Send-Off (immediately after)</option>
+          <option value="1">02 · The Care Message (day 3–5)</option>
+          <option value="2">03 · The Beauty Ritual Reminder (week 2–3)</option>
+          <option value="3">04 · The Re-Booking Prompt (week 3–4)</option>
+        </select>
+      </div>
+      <div class="fl">
+        <label>Preview</label>
+        <div class="preview-box" id="t-prev"></div>
+      </div>
+      <button class="btn btn-p" onclick="sendTest()">▷ Send test message</button>
+      <div id="t-res" style="margin-top:12px;font-size:13px;"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const SEG={
+  hair:{label:'Hair',icon:'💇',pc:'ph',tps:[
+    {name:'The Warm Send-Off',tm:'Immediately after',tpl:`Hi {{client_name}} 🌸 Your hair today is absolutely everything — and so are you. Remember to deep condition in 3–4 days and avoid heat for 48 hours. Thank you for trusting us with your beauty. — {{salon_name}}`},
+    {name:'The Care Message',tm:'Day 3–5',tpl:`Hey {{client_name}} ✨ Checking in — how is your hair feeling? Remember, your hair deserves the same love you give everyone else. Use your satin pillowcase and keep those ends moisturised. You are beautiful, always. — {{therapist_name}} at {{salon_name}}`},
+    {name:'The Beauty Ritual Reminder',tm:'Week 2–3',tpl:`{{client_name}}, beautiful hair is a ritual, not a once-off. Treat yourself to a deep conditioning mask this weekend — you deserve it. Ready to book your next session? — {{salon_name}}`},
+    {name:'The Re-Booking Prompt',tm:'Week 3–4',tpl:`Ready to feel like yourself again, {{client_name}}? 🌺 Your hair thrives on consistency — and so do you. Book here: {{booking_link}}\n\nWe always keep the best slots for our regulars. — {{salon_name}}`}
+  ]},
+  nails:{label:'Nails',icon:'💅',pc:'pn',tps:[
+    {name:'The Warm Send-Off',tm:'Immediately after',tpl:`{{client_name}}, your nails are giving everything 💅 They look stunning — just like you. For the next 24hrs, avoid prolonged water exposure and apply cuticle oil tonight. Enjoy every glance at your hands! — {{salon_name}}`},
+    {name:'The Care Message',tm:'Day 3–5',tpl:`Hi {{client_name}} 🌸 A little reminder: apply cuticle oil every night before bed. Strong, beautiful nails start from within — just like your confidence does. You are gorgeous. — {{therapist_name}}, {{salon_name}}`},
+    {name:'The Beauty Ritual Reminder',tm:'Week 1–2',tpl:`{{client_name}}, beautiful hands tell a beautiful story ✨ Your 2-week fill is coming up. Ready to keep that glow going? — {{salon_name}}`},
+    {name:'The Re-Booking Prompt',tm:'Week 2–3',tpl:`Time to refresh that beauty, {{client_name}} 💅 Book your next appointment here: {{booking_link}}\n\nSee you soon! — {{salon_name}}`}
+  ]},
+  aesthetics:{label:'Aesthetics',icon:'✨',pc:'pa',tps:[
+    {name:'The Warm Send-Off',tm:'Immediately after',tpl:`{{client_name}}, your skin is glowing — and so should your spirit ✨ For the next 48hrs: avoid direct sunlight, no heavy makeup, stay hydrated. You are radiant inside and out. — {{therapist_name}} at {{salon_name}}`},
+    {name:'The Care Message',tm:'Day 3–5',tpl:`Hi {{client_name}} 🌿 How is your skin feeling? Remember your SPF 50+ every morning — protecting your skin is an act of self-love. You deserve to feel beautiful every single day. — {{salon_name}}`},
+    {name:'The Beauty Ritual Reminder',tm:'Week 2–3',tpl:`{{client_name}}, beautiful skin isn't an accident — it's a ritual you gift yourself ✨ Your monthly facial keeps that glow alive. Shall we book? — {{salon_name}}`},
+    {name:'The Re-Booking Prompt',tm:'Week 3–4',tpl:`Your skin is ready for its next chapter, {{client_name}} 🌸 A monthly facial is the greatest gift you can give yourself. Book here: {{booking_link}}\n\nYou are worth it. Always. — {{salon_name}}`}
+  ]},
+  wellness:{label:'Wellness',icon:'🌿',pc:'pw',tps:[
+    {name:'The Warm Send-Off',tm:'Immediately after',tpl:`{{client_name}}, today you chose yourself — and that is everything 🌿 Drink plenty of water, rest well, and allow your body to absorb all the goodness. You are whole. You are enough. You are beautiful. — {{salon_name}}`},
+    {name:'The Care Message',tm:'Day 3–5',tpl:`Hi {{client_name}} ✨ How are you feeling? Self-care isn't selfish — it's how you show up as your best self. Keep choosing you. 🌸 — {{therapist_name}}, {{salon_name}}`},
+    {name:'The Beauty Ritual Reminder',tm:'Week 2–3',tpl:`{{client_name}}, wellness is the practice of returning to yourself, over and over 🌿 Your next session is coming up. Let's keep that beautiful energy flowing. — {{salon_name}}`},
+    {name:'The Re-Booking Prompt',tm:'Week 3–4',tpl:`You deserve this, {{client_name}} 🌸 Regular wellness rituals honour the beautiful woman you are. Book here: {{booking_link}}\n\nWe can't wait to see you. — {{salon_name}}`}
+  ]}
+};
+
+const RECENT=[
+  {c:'Nomvula Dlamini',s:'aesthetics',tp:'The Warm Send-Off',t:'Today, 14:22',st:'sent'},
+  {c:'Thandi Mokoena',s:'hair',tp:'The Re-Booking Prompt',t:'Today, 11:05',st:'sent'},
+  {c:'Lerato Sithole',s:'nails',tp:'The Care Message',t:'Yesterday, 16:40',st:'sent'},
+  {c:'Ayanda Khoza',s:'wellness',tp:'The Beauty Ritual Reminder',t:'Yesterday, 09:15',st:'pending'},
+  {c:'Bongiwe Nkosi',s:'aesthetics',tp:'The Care Message',t:'2 days ago',st:'sent'},
+  {c:'Zanele Mthembu',s:'hair',tp:'The Beauty Ritual Reminder',t:'2 days ago',st:'failed'},
+  {c:'Mpho Sithole',s:'nails',tp:'The Warm Send-Off',t:'3 days ago',st:'sent'},
+  {c:'Sifiso Radebe',s:'wellness',tp:'The Re-Booking Prompt',t:'3 days ago',st:'sent'},
+];
+const UPCOMING=[
+  {c:'Ayanda Khoza',s:'wellness',tp:'The Beauty Ritual Reminder',t:'Tomorrow, 10:00'},
+  {c:'Naledi Motsepe',s:'aesthetics',tp:'The Care Message',t:'Thu 12 Jun, 14:00'},
+  {c:'Funmilayo Osei',s:'hair',tp:'The Re-Booking Prompt',t:'Fri 13 Jun, 09:00'},
+  {c:'Kefilwe Mabe',s:'nails',tp:'The Warm Send-Off',t:'Sat 14 Jun, 16:30'},
+];
+const LOG=[...RECENT.map(r=>({...r,ph:'+27 ••• •••• ••••'})),
+  {c:'Funmilayo Osei',s:'hair',tp:'The Warm Send-Off',ph:'+27 71 234 5678',t:'1 week ago',st:'sent'},
+  {c:'Kefilwe Mabe',s:'nails',tp:'The Care Message',ph:'+27 82 876 5432',t:'1 week ago',st:'sent'},
+  {c:'Zanele Mthembu',s:'hair',tp:'The Re-Booking Prompt',ph:'+27 73 111 2222',t:'2 weeks ago',st:'failed'},
+];
+
+function spill(s){const d=SEG[s];return`<span class="pill ${d.pc}">${d.icon} ${d.label}</span>`;}
+function stpill(st){const m={sent:['ps','Sent'],pending:['pp','Pending'],failed:['pf','Failed']};const[c,l]=m[st];return`<span class="pill ${c}">${l}</span>`;}
+
+function show(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='tp'){setSeg('hair',document.querySelector('.stab'));}
+  if(id==='log'){filterLog('all',document.querySelector('.fc'));}
+  if(id==='test'){updatePrev();}
+}
+
+function loadDash(){
+  ['m1','m2','m3','m4'].forEach(id=>document.getElementById(id).textContent='—');
+  setTimeout(()=>{
+    document.getElementById('m1').textContent='247';document.getElementById('m1n').textContent='↑ 18% vs last month';
+    document.getElementById('m2').textContent='94%';document.getElementById('m2n').textContent='↑ Strong delivery';
+    document.getElementById('m3').textContent='83';document.getElementById('m3n').textContent='12 new this month';
+    document.getElementById('m4').textContent='9';document.getElementById('m4n').textContent='Next: Ayanda · tomorrow';
+    document.getElementById('tb-recent').innerHTML=RECENT.map(r=>`<tr>
+      <td style="font-weight:500;color:var(--ink)">${r.c}</td>
+      <td>${spill(r.s)}</td><td style="color:var(--ink-m)">${r.tp}</td>
+      <td style="color:var(--ink-l)">${r.t}</td><td>${stpill(r.st)}</td></tr>`).join('');
+    document.getElementById('tb-up').innerHTML=UPCOMING.map(r=>`<tr>
+      <td style="font-weight:500;color:var(--ink)">${r.c}</td>
+      <td>${spill(r.s)}</td><td style="color:var(--ink-m)">${r.tp}</td>
+      <td style="color:var(--ink-l)">${r.t}</td>
+      <td><button class="btn btn-g btn-sm">Skip</button></td></tr>`).join('');
+  },500);
+}
+
+let curSeg='hair';
+function setSeg(seg,el){
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');curSeg=seg;
+  const s=SEG[seg];const nc=['n1','n2','n3','n4'];
+  document.getElementById('tp-grid').innerHTML=s.tps.map((tp,i)=>`
+    <div class="tpc">
+      <div class="tph">
+        <div class="tpnum ${nc[i]}">${i+1}</div>
+        <div class="tpm"><div class="tpname">${tp.name}</div><div class="tptm">${tp.tm}</div></div>
+        <div class="tog" onclick="this.classList.toggle('off')"></div>
+      </div>
+      <div class="tpb">
+        <textarea class="tpl" id="t-${seg}-${i}">${tp.tpl}</textarea>
+        <div class="tpfoot"><button class="btn btn-g btn-sm" onclick="saveTpl('${seg}',${i})">Save</button></div>
+      </div>
+    </div>`).join('');
+}
+function saveTpl(seg,i){const v=document.getElementById(`t-${seg}-${i}`).value;SEG[seg].tps[i].tpl=v;flash('Template saved ✓');}
+
+function filterLog(f,el){
+  document.querySelectorAll('.fc').forEach(c=>c.classList.remove('active'));el.classList.add('active');
+  const rows=f==='all'?LOG:LOG.filter(r=>r.s===f||r.st===f);
+  document.getElementById('tb-log').innerHTML=rows.map(r=>`<tr>
+    <td style="font-weight:500;color:var(--ink)">${r.c}</td>
+    <td>${spill(r.s)}</td><td style="color:var(--ink-m)">${r.tp}</td>
+    <td style="color:var(--ink-l);font-size:12px;">${r.ph||'+27 ••• •••• ••••'}</td>
+    <td style="color:var(--ink-l)">${r.t}</td><td>${stpill(r.st)}</td></tr>`).join('');
+}
+
+function swapP(el){document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+
+function updatePrev(){
+  const seg=document.getElementById('t-seg')?.value||'aesthetics';
+  const tp=parseInt(document.getElementById('t-tp')?.value||'0');
+  const name=document.getElementById('t-name')?.value||'Nomvula';
+  let msg=SEG[seg].tps[tp].tpl;
+  msg=msg.replace(/{{client_name}}/g,name).replace(/{{salon_name}}/g,'Your Salon')
+         .replace(/{{therapist_name}}/g,'Your Therapist').replace(/{{booking_link}}/g,'umuhlewena.app/book')
+         .replace(/{{treatment}}/g,'your treatment').replace(/{{next_date}}/g,'next week');
+  const el=document.getElementById('t-prev');if(el)el.textContent=msg;
+}
+function sendTest(){
+  const ph=document.getElementById('t-phone').value;
+  const res=document.getElementById('t-res');
+  if(!ph){res.innerHTML='<span style="color:var(--rose)">Please enter a phone number.</span>';return;}
+  res.innerHTML='<span style="color:var(--ink-l)">Sending…</span>';
+  setTimeout(()=>{res.innerHTML=`<span style="color:var(--teal)">✓ Message sent to ${ph}</span>`;},1200);
+}
+
+function flash(msg){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;';
+  el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2000);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{loadDash();updatePrev();});
+</script>
+</body>
+</html>
